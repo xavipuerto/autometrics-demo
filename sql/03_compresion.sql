@@ -1,5 +1,5 @@
 -- 03_compresion.sql
--- Compresión de chunks de vehiculos_gorda (ejecutar mañana).
+-- Compresión de chunks de vehiculos_grande (ejecutar mañana).
 -- Objetivo: comprimir los 2 chunks más antiguos y comparar su tamaño.
 --
 -- TIPO DE COMPRESIÓN USADA (envio de la prueba):
@@ -19,7 +19,7 @@ SELECT c.chunk_schema,
        pg_size_pretty(pg_total_relation_size((c.chunk_schema || '.' || c.chunk_name)::regclass)) AS size,
        c.is_compressed
 FROM timescaledb_information.chunks c
-WHERE c.hypertable_name = 'vehiculos_gorda'
+WHERE c.hypertable_name = 'vehiculos_grande'
 ORDER BY c.range_start;
 
 -- 2) Comprimir los 2 chunks más antiguos
@@ -27,7 +27,7 @@ SELECT compress_chunk(format('%I.%I', x.chunk_schema, x.chunk_name)::regclass)
 FROM (
     SELECT chunk_schema, chunk_name
     FROM timescaledb_information.chunks
-    WHERE hypertable_name = 'vehiculos_gorda'
+    WHERE hypertable_name = 'vehiculos_grande'
     ORDER BY range_start
     LIMIT 2
 ) x;
@@ -40,7 +40,7 @@ SELECT c.chunk_schema,
        pg_size_pretty(pg_total_relation_size((c.chunk_schema || '.' || c.chunk_name)::regclass)) AS size,
        c.is_compressed
 FROM timescaledb_information.chunks c
-WHERE c.hypertable_name = 'vehiculos_gorda'
+WHERE c.hypertable_name = 'vehiculos_grande'
 ORDER BY c.range_start;
 
 -- 4) Comparativa: bytes antes vs después (los 2 comprimidos)
@@ -48,7 +48,7 @@ SELECT c.chunk_name,
        pg_size_pretty(pg_total_relation_size((c.chunk_schema || '.' || c.chunk_name)::regclass)) AS size_actual,
        c.is_compressed
 FROM timescaledb_information.chunks c
-WHERE c.hypertable_name = 'vehiculos_gorda'
+WHERE c.hypertable_name = 'vehiculos_grande'
   AND c.is_compressed
 ORDER BY c.range_start;
 
@@ -57,7 +57,7 @@ ORDER BY c.range_start;
 --    Si en vez de comprimir a mano quieres que Timescale lo haga solo:
 --    crea un job (policy_compression) que corre cada 24h y comprime todo
 --    chunk cuyo rango temporal termina hace más de 24h.
-SELECT add_compression_policy('vehiculos_gorda',
+SELECT add_compression_policy('vehiculos_grande',
        compress_after     => INTERVAL '24 hours',   -- comprimir lo más viejo que 24h
        schedule_interval  => INTERVAL '24 hours');  -- el job corre cada 24h
 --    Devuelve el job_id (normalmente 1000).

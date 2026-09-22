@@ -38,7 +38,7 @@ vehículos** (presión, temperatura, velocidad, rpm, autonomía…) con dos
 hipertables bien diferenciadas:
 
 - `vehiculos_ts` — 1500 chunks de 1 día, el "caso mal dimensionado".
-- `vehiculos_gorda` — 3 chunks de 3 días, el "caso bien dimensionado",
+- `vehiculos_grande` — 3 chunks de 3 días, el "caso bien dimensionado",
   convertidos a columnar con compresión nativa.
 
 | Componente | Valor |

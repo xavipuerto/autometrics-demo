@@ -1,5 +1,5 @@
 -- 05_compresion_politica.sql
--- Política automática de compresión sobre vehiculos_gorda.
+-- Política automática de compresión sobre vehiculos_grande.
 --
 -- Qué hace: un job de fondo (policy_compression, job_id 1000) corre cada 24h
 -- y comprime/recomprime TODO CHUNK cuyo rango temporal termina hace más de 24h:
@@ -17,7 +17,7 @@
 --   - next_start queda fijado a +24h; ver job_stats para el próximo run.
 
 -- 1) Crear la política (devuelve el job_id creado, p.ej. 1000)
-SELECT add_compression_policy('vehiculos_gorda',
+SELECT add_compression_policy('vehiculos_grande',
        compress_after     => INTERVAL '24 hours',
        schedule_interval  => INTERVAL '24 hours');
 --    Ojo: si ya existe salta error "policy already exists".
@@ -41,15 +41,15 @@ CALL run_job(1000);
 
 -- 5) Comprobar el estado físico de los chunks tras la política
 SELECT chunk_name, is_compressed,
-       pg_size_pretty(pg_total_relation_size(to_regclass('particiones_gordas.'||chunk_name))) AS size
+       pg_size_pretty(pg_total_relation_size(to_regclass('particiones_grandes.'||chunk_name))) AS size
 FROM timescaledb_information.chunks
-WHERE hypertable_name = 'vehiculos_gorda'
+WHERE hypertable_name = 'vehiculos_grande'
 ORDER BY range_start;
 
 -- ---------------------------------------------------------------
 -- 6) BORRAR EL JOB DE COMPRESIÓN (por si no te ha convencido)
 --    Elimina la política y su job de fondo de golpe:
-SELECT remove_compression_policy('vehiculos_gorda');
+SELECT remove_compression_policy('vehiculos_grande');
 --    Verificar que ya no existe:
 --    SELECT job_id, proc_name FROM timescaledb_information.jobs
 --    WHERE proc_name LIKE 'policy_compression%';   -- -> 0 filas

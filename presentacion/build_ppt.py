@@ -329,12 +329,12 @@ textbox(s, 9.05, 2.45, 3.4, 2.2, [
     dict(text="Doc Timescale: hasta 90-95 % en casos típicos", size=11, color=MUTED),
 ])
 textbox(s, 0.6, 6.3, 8.0, 0.7, [
-    dict(text="SQL habitado: `ALTER TABLE vehiculos_gorda SET (timescaledb.compress, segmentby='auto_id', orderby='ts DESC');`", size=13, color=TEXT),
+    dict(text="SQL habitado: `ALTER TABLE vehiculos_grande SET (timescaledb.compress, segmentby='auto_id', orderby='ts DESC');`", size=13, color=TEXT),
 ])
 
 # S8 - Gorda: tabla antes/despues
 s = new_slide()
-header(s, 8, "", "`03_compresion.sql`", "vehiculos_gorda: 3 chunks de 3 días, 2 comprimidos y 1 de control")
+header(s, 8, "", "`03_compresion.sql`", "vehiculos_grande: 3 chunks de 3 días, 2 comprimidos y 1 de control")
 panel_table(s, 0.6, 2.25, 12.1, ["Chunk", "Ventana", "Antes", "Después", "Comprimido"],
             [["3001 (en otra recreación: 6003)", "2026-09-13 → 09-16", "56 MB", "17 MB", "sí"],
              ["3002 (… 6004)", "2026-09-16 → 09-19", "56 MB", "17 MB", "sí"],
@@ -372,13 +372,13 @@ textbox(s, 0.6, 6.3, 12.0, 0.5, [dict(text="Backfill puntual en chunk viejo: fue
 s = new_slide()
 header(s, 10, "", "`05_compresion_politica.sql`", "La política de compresión — job 1000, que se ocupa de todo")
 code(s, [
-    "SELECT add_compression_policy('vehiculos_gorda',",
+    "SELECT add_compression_policy('vehiculos_grande',",
     "       compress_after    => INTERVAL '24 hours',",
     "       schedule_interval => INTERVAL '24 hours');  --→ job 1000",
     "",
     "CALL run_job(1000);            -- forzarlo a mano (procedimiento)",
     "SELECT alter_job(1000, scheduled => false);         -- pausar",
-    "SELECT remove_compression_policy('vehiculos_gorda'); -- borrar",
+    "SELECT remove_compression_policy('vehiculos_grande'); -- borrar",
 ], y=2.2, h=1.7, size=13)
 bullets(s, [
     dict(text="Cada **24 h** comprime/recomprime todo chunk cuyo rango terminó hace **>24 h**.", size=15, bullet=True, space_after=4),
@@ -401,7 +401,7 @@ panel_table(s, 0.6, 2.25, 12.1, ["Consulta (mismo filtro 1 día)", "Plan", "Cost
             [["vehiculos_ts + ts (hypertable 1d)", "Seq Scan → 1 solo chunk", "0,09 ms · 3 buffers"],
              ["vehiculos_ts + ts 30 días", "Append con ~30 partner aggregates", "1,5 ms · 90 buffers"],
              ["vehiculos_plana (sin Timescale)", "Parallel Seq Scan toda la tabla", "20,5 ms · 4.440 buffers"],
-             ["vehiculos_gorda (comprimida)", "ColumnarIndexScan en columnstore", "filtra y agrega en compresión"]],
+             ["vehiculos_grande (comprimida)", "ColumnarIndexScan en columnstore", "filtra y agrega en compresión"]],
             [0.40, 0.34, 0.26], highlight_col=[1])
 bullets(s, [
     dict(text="**“El peor caso de la tabla plana es el caso normal de Timescale”**: la misma consulta mueve 4.440 buffers en plana y 3 en la hypertable.", size=15, space_after=0),
@@ -416,11 +416,11 @@ s = new_slide()
 header(s, 12, "", "`09_retencion_autopurga.sql`", "Retención / autopurga: que lo viejo desaparezca solo — job 1001")
 code(s, [
     "-- Manual, una vez:",
-    "SELECT drop_chunks('vehiculos_gorda', older_than => now() - INTERVAL '5 days');",
+    "SELECT drop_chunks('vehiculos_grande', older_than => now() - INTERVAL '5 days');",
     "",
     "-- Automático: política de retención → job 1001 (cada 24 h)",
-    "SELECT add_retention_policy('vehiculos_gorda', drop_after => INTERVAL '5 days');",
-    "CALL run_job(1001);   SELECT remove_retention_policy('vehiculos_gorda');",
+    "SELECT add_retention_policy('vehiculos_grande', drop_after => INTERVAL '5 days');",
+    "CALL run_job(1001);   SELECT remove_retention_policy('vehiculos_grande');",
 ], y=2.15, h=1.6, size=12)
 bullets(s, [
     dict(text="Borra **chunks completos**, no filas: elimina el chunk cuando su `range_end` queda antes de `now() - drop_after`.", size=15, bullet=True, space_after=4),

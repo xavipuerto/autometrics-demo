@@ -31,9 +31,9 @@ WHERE ts >= '2026-05-15'::timestamptz AND ts < '2026-05-16'::timestamptz;
 
 -- 5) Chunk COMPRIMIDO: la consulta lee directo del columnstore
 EXPLAIN (ANALYZE, BUFFERS, COSTS OFF)
-SELECT count(*) FROM vehiculos_gorda
+SELECT count(*) FROM vehiculos_grande
 WHERE ts >= '2026-09-16'::timestamptz AND ts < '2026-09-20'::timestamptz;
---    Custom Scan (ColumnarIndexScan) on vehiculos_gorda_6004_chunk  <-- sobre la tabla de columnas
+--    Custom Scan (ColumnarIndexScan) on vehiculos_grande_6004_chunk  <-- sobre la tabla de columnas
 
 -- 6) Agregado por franja temporal: time_bucket sobre la hypertable grande
 SELECT time_bucket('1 hour', ts) AS hora,

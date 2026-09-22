@@ -92,7 +92,7 @@ GROUP BY 1 ORDER BY 1;
 --     velocidad NUMERIC(6,1), revoluciones SMALLINT,
 --     consumo_potencia NUMERIC(6,1), autonomia SMALLINT
 --   Ver estructura real: \d+ vehiculos_ts
---   (Configuracion de compresion en vehiculos_gorda y como se ve un chunk
+--   (Configuracion de compresion en vehiculos_grande y como se ve un chunk
 --    comprimido por dentro estan en 03_compresion.sql y pruebas.md.)
 
 -- 5a) ANTES: los datos "en crudo" (muestras reales del 2026-05-15 00:00)

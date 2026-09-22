@@ -60,7 +60,7 @@ SELECT count(*) FROM vehiculos_plana
 WHERE ts >= (SELECT max(ts) FROM vehiculos_plana) - interval '24 hours'
   AND ts <= (SELECT max(ts) FROM vehiculos_plana);
 
--- 7) gorda: ultima ventana del chunk gordo (3 dias)
+-- 7) grande: ultima ventana del chunk grande (3 dias)
 SELECT count(*) AS lecturas_chunk_activo
-FROM vehiculos_gorda
-WHERE ts >= (SELECT max(ts) FROM vehiculos_gorda) - interval '3 days';
+FROM vehiculos_grande
+WHERE ts >= (SELECT max(ts) FROM vehiculos_grande) - interval '3 days';

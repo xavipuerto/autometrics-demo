@@ -1,14 +1,14 @@
 -- 02_grande.sql
--- vehiculos_gorda: hypertable con chunks "gordos" de 3 días, en esquema particiones_gordas.
+-- vehiculos_grande: hypertable con chunks "grandes" de 3 días, en esquema particiones_grandes.
 -- Objetivo: 3 chunks de ~40MB que mañana podremos comprimir (ver 03_compresion.sql).
 --
 -- Datos: 10 coches, 1 lectura cada 5 segundos durante 9 días -> 3 chunks de 3 días.
 --   filas por chunk = (3 dias * 17280 lecturas/dia) * 10 autos = 518.400 filas (~40MB).
 
-CREATE SCHEMA IF NOT EXISTS particiones_gordas;
-COMMENT ON SCHEMA particiones_gordas IS 'Esquema destino de los chunks de la hypertable vehiculos_gorda (chunks gordos de 3 días para pruebas de compresión).';
+CREATE SCHEMA IF NOT EXISTS particiones_grandes;
+COMMENT ON SCHEMA particiones_grandes IS 'Esquema destino de los chunks de la hypertable vehiculos_grande (chunks grandes de 3 días para pruebas de compresión).';
 
-CREATE TABLE IF NOT EXISTS vehiculos_gorda (
+CREATE TABLE IF NOT EXISTS vehiculos_grande (
     auto_id              INT           NOT NULL,
     ts                   TIMESTAMPTZ   NOT NULL,
     presion_ruedas       NUMERIC(6,3),
@@ -22,30 +22,30 @@ CREATE TABLE IF NOT EXISTS vehiculos_gorda (
     consumo_potencia     NUMERIC(6,1),
     autonomia            SMALLINT
 );
-COMMENT ON TABLE vehiculos_gorda IS 'Hypertable Timescale con chunks gordos de 3 días en el esquema particiones_gordas, preparada para pruebas de compresión.';
-COMMENT ON COLUMN vehiculos_gorda.auto_id IS 'Identificador del vehículo que genera la telemetría.';
-COMMENT ON COLUMN vehiculos_gorda.ts IS 'Marca de tiempo (UTC) en la que se registró la telemetría. Columna de particionado.';
-COMMENT ON COLUMN vehiculos_gorda.presion_ruedas IS 'Presión de los neumáticos, en bar.';
-COMMENT ON COLUMN vehiculos_gorda.nivel_combustible IS 'Nivel de llenado del depósito de gasolina, en %.';
-COMMENT ON COLUMN vehiculos_gorda.carga_bateria IS 'Estado de carga de la batería de tracción, en %.';
-COMMENT ON COLUMN vehiculos_gorda.temperatura_motor IS 'Temperatura del motor / refrigerante, en grados centígrados.';
-COMMENT ON COLUMN vehiculos_gorda.temperatura_bateria IS 'Temperatura del pack de baterías, en grados centígrados.';
-COMMENT ON COLUMN vehiculos_gorda.presion_aceite IS 'Presión del circuito de aceite, en bar.';
-COMMENT ON COLUMN vehiculos_gorda.velocidad IS 'Velocidad del vehículo, en km/h.';
-COMMENT ON COLUMN vehiculos_gorda.revoluciones IS 'Revoluciones del motor por minuto (rpm).';
-COMMENT ON COLUMN vehiculos_gorda.consumo_potencia IS 'Consumo/generación instantánea de potencia, en kW (negativo = regeneración).';
-COMMENT ON COLUMN vehiculos_gorda.autonomia IS 'Autonomía restante estimada, en km.';
+COMMENT ON TABLE vehiculos_grande IS 'Hypertable Timescale con chunks grandes de 3 días en el esquema particiones_grandes, preparada para pruebas de compresión.';
+COMMENT ON COLUMN vehiculos_grande.auto_id IS 'Identificador del vehículo que genera la telemetría.';
+COMMENT ON COLUMN vehiculos_grande.ts IS 'Marca de tiempo (UTC) en la que se registró la telemetría. Columna de particionado.';
+COMMENT ON COLUMN vehiculos_grande.presion_ruedas IS 'Presión de los neumáticos, en bar.';
+COMMENT ON COLUMN vehiculos_grande.nivel_combustible IS 'Nivel de llenado del depósito de gasolina, en %.';
+COMMENT ON COLUMN vehiculos_grande.carga_bateria IS 'Estado de carga de la batería de tracción, en %.';
+COMMENT ON COLUMN vehiculos_grande.temperatura_motor IS 'Temperatura del motor / refrigerante, en grados centígrados.';
+COMMENT ON COLUMN vehiculos_grande.temperatura_bateria IS 'Temperatura del pack de baterías, en grados centígrados.';
+COMMENT ON COLUMN vehiculos_grande.presion_aceite IS 'Presión del circuito de aceite, en bar.';
+COMMENT ON COLUMN vehiculos_grande.velocidad IS 'Velocidad del vehículo, en km/h.';
+COMMENT ON COLUMN vehiculos_grande.revoluciones IS 'Revoluciones del motor por minuto (rpm).';
+COMMENT ON COLUMN vehiculos_grande.consumo_potencia IS 'Consumo/generación instantánea de potencia, en kW (negativo = regeneración).';
+COMMENT ON COLUMN vehiculos_grande.autonomia IS 'Autonomía restante estimada, en km.';
 
 SELECT create_hypertable(
-    'vehiculos_gorda',
+    'vehiculos_grande',
     'ts',
     chunk_time_interval => INTERVAL '3 days',
-    associated_schema_name => 'particiones_gordas',
-    associated_table_prefix => 'vehiculos_gorda'
+    associated_schema_name => 'particiones_grandes',
+    associated_table_prefix => 'vehiculos_grande'
 );
 
 -- Configuración de compresión (los chunks se comprimirán mañana, ver 03_compresion.sql)
-ALTER TABLE vehiculos_gorda SET (
+ALTER TABLE vehiculos_grande SET (
     timescaledb.compress,
     timescaledb.compress_segmentby = 'auto_id',
     timescaledb.compress_orderby = 'ts DESC'
@@ -55,7 +55,7 @@ ALTER TABLE vehiculos_gorda SET (
 -- Carga de datos aleatorios: 1 lectura cada 5 segundos x 10 coches x 9 dias
 --   -> 3 chunks de 3 dias, ~518.400 filas / chunk (~40MB)
 -- ============================================================================
-INSERT INTO vehiculos_gorda (auto_id, ts, presion_ruedas, nivel_combustible, carga_bateria,
+INSERT INTO vehiculos_grande (auto_id, ts, presion_ruedas, nivel_combustible, carga_bateria,
                              temperatura_motor, temperatura_bateria, presion_aceite, velocidad,
                              revoluciones, consumo_potencia, autonomia)
 SELECT a,
