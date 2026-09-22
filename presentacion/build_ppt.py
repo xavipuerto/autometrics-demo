@@ -111,7 +111,14 @@ def kicker(slide, x, y, w, text):
     textbox(slide, x, y + 0.03, w, 0.35, [dict(text=text.upper(), size=13, bold=True, color=AMBER)])
 
 def h_title(slide, x, y, w, text, size=30):
-    textbox(slide, x, y, w, 0.6, [dict(text=text, size=size, bold=True, color=TEXT)])
+    tb = slide.shapes.add_textbox(Inches(x), Inches(y), Inches(w), Inches(0.7))
+    tf = tb.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    p.font.size = Pt(size)
+    p.font.bold = True
+    p.font.color.rgb = TEXT
+    _apply_runs(p, text, TEXT)
 
 def rule(slide, x, y, w, color=AMBER, h=0.045):
     rect(slide, x, y, w, h, fill=color)
@@ -249,10 +256,11 @@ header(s, 4, "", "TimescaleDB: el dato de serie temporal nativo de PostgreSQL")
 bullets(s, [
     dict(text="Es una **extensión de PostgreSQL** (`CREATE EXTENSION timescaledb;`), no un motor aparte: SQL, `EXPLAIN` y catálogo son los de siempre.", size=15, space_after=8),
     dict(text="Cubre la necesidad que nos trae aquí: **lecturas que llegan sin parar** — IoT, telemetría de flota, métricas, datos financieros — que hay que guardar, consultar por ventanas de tiempo y ordenar su ciclo de vida.", size=15, space_after=8),
-    dict(text="Y lo hace **sin cambiar de base de datos**: si ya usas PostgreSQL, lo añades y ya.", size=15, space_after=0),
-], y=2.15)
-rect(s, 8.8, 2.15, 3.95, 3.4, fill=BG_PANEL, round_=True)
-textbox(s, 9.05, 2.4, 3.45, 3.0, [
+    dict(text="Y lo hace **sin cambiar de base de datos**: si ya usas PostgreSQL, lo añades y ya.", size=15, space_after=8),
+    dict(text="¿Y probarlo en la nube sin instalar nada? **Tiger Cloud** — la plataforma gestionada de la compañía (hoy *TigerData*) — provisiona un PostgreSQL + TimescaleDB en minutos, con **30 días de prueba gratis sin tarjeta**. Esta misma demo corre ahí igual.", size=15, space_after=0),
+], y=2.05)
+rect(s, 8.8, 2.05, 3.95, 3.7, fill=BG_PANEL, round_=True)
+textbox(s, 9.05, 2.3, 3.45, 3.3, [
     dict(text="Lo que aporta", size=14, bold=True, color=AMBER, space_after=8),
     dict(text="· Hipertables: una tabla lógica, particiones por tiempo por dentro", size=12, color=TEXT, space_after=4),
     dict(text="· Compresión nativa de los bloques viejos", size=12, color=TEXT, space_after=4),
@@ -261,11 +269,11 @@ textbox(s, 9.05, 2.4, 3.45, 3.0, [
     dict(text="· Jobs de fondo con cualquier SQL", size=12, color=TEXT, space_after=8),
     dict(text="Y por debajo, el PostgreSQL que ya conoces.", size=12, italic=True, color=MUTED),
 ])
-textbox(s, 0.6, 6.2, 12.1, 0.5, [dict(text="Mismo SQL, mismo EXPLAIN, mismo catálogo: la diferencia es lo que el motor hace con las tablas por dentro.", size=13, italic=True, color=MUTED)])
+textbox(s, 0.6, 6.32, 12.1, 0.5, [dict(text="Mismo SQL, mismo EXPLAIN, mismo catálogo: la diferencia es lo que el motor hace con las tablas por dentro — local o en la nube.", size=13, italic=True, color=MUTED)])
 
 # S5 - Hypertables y chunks
 s = new_slide()
-header(s, 5, "APARTADO 01 · MODELO DE DATOS", "Una tabla lógica, un trozo físico por franja de tiempo")
+header(s, 5, "", "`01_ddl.sql`", "Hypertables y chunks: la tabla lógica y el trozo físico por franja de tiempo")
 bullets(s, [
     dict(text="**Hypertable**: la tabla que tu SQL ve (la misma `CREATE TABLE`).", size=15, space_after=4),
     dict(text="**Chunk**: cada partición temporal es una tabla física escondida en `_timescaledb_internal` (o en tu esquema).", size=15, space_after=4),
@@ -288,7 +296,7 @@ textbox(s, 9.05, 2.45, 3.5, 2.5, [
 
 # S6 - Dimensionado de chunks
 s = new_slide()
-header(s, 6, "APARTADO 02 · CONFIGURACIÓN", "Dimensionar el chunk: la decisión que marca la diferencia")
+header(s, 6, "", "`02_gorda.sql`", "Dimensionar el chunk: la decisión que marca la diferencia")
 bullets(s, [
     dict(text="Trocear muy fino dispara el **overhead por chunk**: cada trozo físico es una tabla, con sus metadatos, índices y páginas propias — más trozos, más gasto fijo.", size=14, bullet=True, space_after=8),
     dict(text="**Regla práctica**: un chunk debe cubrir ~**10-20 min de tu buffer target** de ingesta constante; menos chunks y más grandes reducen ese gasto.", size=14, bullet=True, space_after=8),
@@ -303,7 +311,7 @@ textbox(s, 9.05, 2.55, 3.45, 2.4, [
 
 # S7 - Compresion nativa
 s = new_slide()
-header(s, 7, "APARTADO 03 · CÓMO GUARDAMOS", "Compresión nativa: la tabla fila se convierte en columnas")
+header(s, 7, "", "`03_compresion.sql`", "Compresión nativa: la tabla fila se convierte en columnas")
 bullets(s, [
     dict(text="Cada chunk comprimido pasa a ser un **columnstore** (`..._chunk_compressed`) y es **lossless** (pérdida cero): `count(*)` se mantiene.", size=15, space_after=4),
     dict(text="Algoritmos automáticos por tipo:", size=15, space_after=2),
@@ -326,7 +334,7 @@ textbox(s, 0.6, 6.3, 8.0, 0.7, [
 
 # S8 - Gorda: tabla antes/despues
 s = new_slide()
-header(s, 8, "APARTADO 03 · DEMO", "vehiculos_gorda: 3 chunks de 3 días, 2 comprimidos y 1 de control")
+header(s, 8, "", "`03_compresion.sql`", "vehiculos_gorda: 3 chunks de 3 días, 2 comprimidos y 1 de control")
 panel_table(s, 0.6, 2.25, 12.1, ["Chunk", "Ventana", "Antes", "Después", "Comprimido"],
             [["3001 (en otra recreación: 6003)", "2026-09-13 → 09-16", "56 MB", "17 MB", "sí"],
              ["3002 (… 6004)", "2026-09-16 → 09-19", "56 MB", "17 MB", "sí"],
@@ -342,7 +350,7 @@ stat_d = big_stat(s, 0.6, 6.05, 3.0, "1.555.200", "filas siguen ahí tras compri
 
 # S9 - Insert en comprimido
 s = new_slide()
-header(s, 9, "APARTADO 04 · COMPORTAMIENTO", "¿Insertar en un chunk ya comprimido? Sí, y sin descomprimir todo")
+header(s, 9, "", "`04_insert_chunk_comprimido.sql`", "¿Insertar en un chunk ya comprimido? Sí, y sin descomprimir todo")
 bullets(s, [
     dict(text='**Mito a corregir**: "Timescale descomprime y recompresa en cada INSERT" → **falso**.', size=15, bold=True, space_after=4),
     dict(text="Las filas nuevas van a un **overflow rowstore** del chunk: `is_compressed` sigue a `t` pero el chunk **crece** (8192 B → 24 kB con 10 filas).", size=15, space_after=4),
@@ -362,7 +370,7 @@ textbox(s, 0.6, 6.3, 12.0, 0.5, [dict(text="Backfill puntual en chunk viejo: fue
 
 # S10 - Politica compresion
 s = new_slide()
-header(s, 10, "APARTADO 05 · AUTOMATIZACIÓN", "Política de compresión: el job 1000 se ocupa de todo")
+header(s, 10, "", "`05_compresion_politica.sql`", "La política de compresión — job 1000, que se ocupa de todo")
 code(s, [
     "SELECT add_compression_policy('vehiculos_gorda',",
     "       compress_after    => INTERVAL '24 hours',",
@@ -388,7 +396,7 @@ textbox(s, 9.25, 2.5, 3.3, 1.9, [
 
 # S11 - Pruning
 s = new_slide()
-header(s, 11, "APARTADO 06 · LEER RÁPIDO", "Pruning: el filtro temporal entra directo en el chunk que toca")
+header(s, 11, "", "`07_explain_queries.sql`", "Pruning: el filtro temporal entra directo en el chunk que toca")
 panel_table(s, 0.6, 2.25, 12.1, ["Consulta (mismo filtro 1 día)", "Plan", "Coste"],
             [["vehiculos_ts + ts (hypertable 1d)", "Seq Scan → 1 solo chunk", "0,09 ms · 3 buffers"],
              ["vehiculos_ts + ts 30 días", "Append con ~30 partner aggregates", "1,5 ms · 90 buffers"],
@@ -405,7 +413,7 @@ textbox(s, 0.6, 6.15, 12.0, 0.5, [dict(text="Nota rigurosa: tamaños y tiempos m
 
 # S12 - Retencion
 s = new_slide()
-header(s, 12, "APARTADO 07 · CICLO DE VIDA", "Retención / autopurga: que lo viejo desaparezca solo — job 1001")
+header(s, 12, "", "`09_retencion_autopurga.sql`", "Retención / autopurga: que lo viejo desaparezca solo — job 1001")
 code(s, [
     "-- Manual, una vez:",
     "SELECT drop_chunks('vehiculos_gorda', older_than => now() - INTERVAL '5 days');",
@@ -427,7 +435,7 @@ textbox(s, 9.25, 4.4, 3.3, 1.3, [
 
 # S13 - time_bucket
 s = new_slide()
-header(s, 13, "APARTADO 08 · DOWNSAMPLING", "time_bucket: 240 lecturas sueltas → 24 medias horizontales")
+header(s, 13, "", "`10_time_bucket.sql`", "Downsampling: 240 lecturas sueltas → 24 medias horizontales")
 code(s, [
     "SELECT time_bucket('1 hour', ts) AS hora,",
     "       count(*)             AS lecturas,",
@@ -450,7 +458,7 @@ textbox(s, 8.3, 5.6, 4.4, 1.2, [
 
 # S14 - Cagg
 s = new_slide()
-header(s, 14, "APARTADO 09 · AGREGADOS", "Continuous aggregates: el resumen precalculado — job 1002")
+header(s, 14, "", "`11_continuous_aggregates.sql`", "Continuous aggregates: el resumen precalculado — job 1002")
 bullets(s, [
     dict(text="Una **vista materializada** que guarda el resultado de `time_bucket + GROUP BY`; se refresca **por ventanas** (solo lo que cambió).", size=15, space_after=4),
     dict(text="Vive en su propia hypertable (`_materialized_hypertable_*` — el nombre cambia por recreación).", size=15, space_after=8),
@@ -473,9 +481,27 @@ textbox(s, 9.25, 2.35, 3.3, 2.7, [
     dict(text="Refresco: 1 h, ventana [−1 mes, −1 h] — el bucket en curso no se recalcula.", size=11, italic=True, color=TEXT),
 ])
 
-# S15 - Jobs custom
+# S15 - Tuning (script 12)
 s = new_slide()
-header(s, 15, "APARTADO 10 · BONUS", "Jobs personalizados: Timescale como cron de PostgreSQL — job 1004")
+header(s, 15, "", "`12_tuning_gucs.sql`", "Tuning: Timescale es PostgreSQL + media docena de GUC propias")
+panel_table(s, 0.6, 2.2, 12.1, ["Parámetro", "Valor aquí (8 CPU / 8 GB, auto)", "Regla"],
+            [["shared_buffers", "~2 GB", "25 % de la RAM"],
+             ["effective_cache_size", "~5,7 GB", "~75 % de la RAM"],
+             ["work_mem / maintenance_work_mem", "8 MB / ~1 GB", "8-16 MB · 5-6 % RAM"],
+             ["max_parallel_workers / _per_gather", "8 / 4", "= nº de núcleos"],
+             ["max_worker_processes", "27", "parallel + bgw + margen"],
+             ["timescaledb.max_background_workers", "16", "hilos de los jobs"],
+             ["timescaledb.max_open_chunks_per_insert", "1024 → 16", "≥chunks abiertos en un INSERT"],
+             ["timescaledb.telemetry_level", "basic → off", "off en producción"]],
+            [0.36, 0.38, 0.26], size=11.5, row_h=0.33)
+textbox(s, 0.6, 5.6, 12.1, 1.1, [
+    dict(text="La imagen `timescaledb` **auto-tunea al arrancar** según CPU/RAM del contenedor. En producción, más RAM/corees de job y chunks grandes…", size=13, color=TEXT, space_after=4),
+    dict(text="Ejemplo 4 CPU / 16 GB: `ALTER SYSTEM SET max_worker_processes=28; max_background_workers=8; max_open_chunks_per_insert=16;`", size=12, color=CYAN, font=F_MONO),
+])
+
+# S16 - Jobs personalizados (script 13)
+s = new_slide()
+header(s, 16, "", "`13_jobs_personalizados_bonus.sql`", "Jobs personalizados: Timescale como cron de PostgreSQL — job 1004")
 code(s, [
     "SELECT add_job('calc_kpi_ultima_hora(int,jsonb)'::regprocedure,",
     "               schedule_interval => INTERVAL '1 hour');  --→ 1003",
@@ -495,24 +521,6 @@ textbox(s, 9.25, 2.4, 3.3, 2.2, [
     dict(text="1 fila por coche y hora", size=11, color=MUTED, space_after=6),
     dict(text="27.7 → 1.934 rpm_max", size=15, bold=True, color=GREEN, space_after=2),
     dict(text="datos de muestra, job ejecutado a mano", size=11, color=MUTED),
-])
-
-# S16 - Tuning
-s = new_slide()
-header(s, 16, "APARTADO 11 · PARÁMETROS", "Tuning: Timescale es PostgreSQL + media docena de GUC propias")
-panel_table(s, 0.6, 2.2, 12.1, ["Parámetro", "Valor aquí (8 CPU / 8 GB, auto)", "Regla"],
-            [["shared_buffers", "~2 GB", "25 % de la RAM"],
-             ["effective_cache_size", "~5,7 GB", "~75 % de la RAM"],
-             ["work_mem / maintenance_work_mem", "8 MB / ~1 GB", "8-16 MB · 5-6 % RAM"],
-             ["max_parallel_workers / _per_gather", "8 / 4", "= nº de núcleos"],
-             ["max_worker_processes", "27", "parallel + bgw + margen"],
-             ["timescaledb.max_background_workers", "16", "hilos de los jobs"],
-             ["timescaledb.max_open_chunks_per_insert", "1024 → 16", "≥chunks abiertos en un INSERT"],
-             ["timescaledb.telemetry_level", "basic → off", "off en producción"]],
-            [0.36, 0.38, 0.26], size=11.5, row_h=0.33)
-textbox(s, 0.6, 5.6, 12.1, 1.1, [
-    dict(text="La imagen `timescaledb` **auto-tunea al arrancar** según CPU/RAM del contenedor. En producción, más RAM/corees de job y chunks grandes…", size=13, color=TEXT, space_after=4),
-    dict(text="Ejemplo 4 CPU / 16 GB: `ALTER SYSTEM SET max_worker_processes=28; max_background_workers=8; max_open_chunks_per_insert=16;`", size=12, color=CYAN, font=F_MONO),
 ])
 
 # S17 - El circulo
