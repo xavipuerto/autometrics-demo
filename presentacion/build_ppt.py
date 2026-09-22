@@ -235,11 +235,11 @@ items = [
     "Dimensionado de chunks — 1 día (mal) vs 3 días (bien)",
     "Compresión nativa — rowstore → columnstore",
     "Insertar en un chunk comprimido — el overflow",
-    "Política de compresión — el job 1000",
+    "Política de compresión — el trabajo en segundo plano",
     "Pruning — el filtro entra en 1 de 1.500 chunks",
-    "Retención / autopurga — el job 1001",
+    "Retención / autopurga — el historial se borra solo",
     "time_bucket — downsampling 240 → 24",
-    "Continuous aggregates — el job 1002",
+    "Continuous aggregates — el resumen precalculado",
     "Jobs personalizados — Timescale como cron",
     "Tuning de parámetros — Timescale + PostgreSQL",
     "El círculo de la telemetría — resumen",
@@ -354,7 +354,7 @@ header(s, 9, "", "`04_insert_chunk_comprimido.sql`", "¿Insertar en un chunk ya 
 bullets(s, [
     dict(text='**Mito a corregir**: "Timescale descomprime y recompresa en cada INSERT" → **falso**.', size=15, bold=True, space_after=4),
     dict(text="Las filas nuevas van a un **overflow rowstore** del chunk: `is_compressed` sigue a `t` pero el chunk **crece** (8192 B → 24 kB con 10 filas).", size=15, space_after=4),
-    dict(text="El merge con el columnstore llega al **recomprimir**: `compress_chunk()` o la política de compresión (job 1000).", size=15, space_after=8),
+    dict(text="El merge con el columnstore llega al **recomprimir**: `compress_chunk()` o la política de compresión en segundo plano.", size=15, space_after=8),
     dict(text="Medidas (2026-09):", size=15, space_after=2),
     dict(text="lote de 5 filas → 5,6 ms  ·  5 individuales → ~0,5 ms c/u", size=14, level=1, space_after=2),
     dict(text="1M en un INSERT → 3,5 s (~285 000 filas/s)  ·  pgbench fila-a-fila → 4.697 tps", size=14, level=1, space_after=8),
@@ -370,27 +370,27 @@ textbox(s, 0.6, 6.3, 12.0, 0.5, [dict(text="Backfill puntual en chunk viejo: fue
 
 # S10 - Politica compresion
 s = new_slide()
-header(s, 10, "", "`05_compresion_politica.sql`", "La política de compresión — job 1000, que se ocupa de todo")
+header(s, 10, "", "`05_compresion_politica.sql`", "La política de compresión: se ocupa de todo sola")
 code(s, [
     "SELECT add_compression_policy('vehiculos_grande',",
     "       compress_after    => INTERVAL '24 hours',",
-    "       schedule_interval => INTERVAL '24 hours');  --→ job 1000",
+    "       schedule_interval => INTERVAL '24 hours');  -- el id lo asigna Timescale",
     "",
-    "CALL run_job(1000);            -- forzarlo a mano (procedimiento)",
-    "SELECT alter_job(1000, scheduled => false);         -- pausar",
+    "CALL run_job(<job_id>);       -- forzarlo a mano (procedimiento)",
+    "SELECT alter_job(<job_id>, scheduled => false);     -- pausar",
     "SELECT remove_compression_policy('vehiculos_grande'); -- borrar",
 ], y=2.2, h=1.7, size=13)
 bullets(s, [
     dict(text="Cada **24 h** comprime/recomprime todo chunk cuyo rango terminó hace **>24 h**.", size=15, bullet=True, space_after=4),
     dict(text="**Reabsorbe el overflow** del rowstore al columnstore sin intervención manual.", size=15, bullet=True, space_after=4),
-    dict(text="**Respeta el chunk activo**: nunca toca la ventana reciente (por eso el 3003 sigue sin comprimir).", size=15, bullet=True, space_after=4),
-    dict(text="`job_stats` / `job_history` muestran la ejecución en vivo: Success, tiempos, siguiente arranque.", size=15, bullet=True, space_after=0),
+    dict(text="**Respeta el chunk activo**: nunca toca la ventana reciente (por eso el chunk de control sigue sin comprimir).", size=15, bullet=True, space_after=4),
+    dict(text="`job_stats` / `job_history` muestran la ejecución en vivo: éxito, tiempos, siguiente arranque.", size=15, bullet=True, space_after=0),
 ], y=4.15)
 rect(s, 9.0, 2.2, 3.75, 2.35, fill=BG_PANEL, round_=True)
 textbox(s, 9.25, 2.5, 3.3, 1.9, [
     dict(text="Estado probado", size=13, bold=True, color=AMBER, space_after=6),
-    dict(text="job 1000 · Success", size=16, bold=True, color=GREEN, space_after=2),
-    dict(text="last_run ≈ al crearse, next_start +24 h", size=11, color=MUTED, space_after=4),
+    dict(text="Éxito (Success)", size=16, bold=True, color=GREEN, space_after=2),
+    dict(text="arrancó al crearse y vuelve cada 24 h", size=11, color=MUTED, space_after=4),
     dict(text='Speech: "si no te convence, lo quitas en una línea"', size=11, italic=True, color=MUTED),
 ])
 
@@ -413,19 +413,19 @@ textbox(s, 0.6, 6.15, 12.0, 0.5, [dict(text="Nota rigurosa: tamaños y tiempos m
 
 # S12 - Retencion
 s = new_slide()
-header(s, 12, "", "`09_retencion_autopurga.sql`", "Retención / autopurga: que lo viejo desaparezca solo — job 1001")
+header(s, 12, "", "`09_retencion_autopurga.sql`", "Retención / autopurga: que lo viejo desaparezca solo")
 code(s, [
     "-- Manual, una vez:",
     "SELECT drop_chunks('vehiculos_grande', older_than => now() - INTERVAL '5 days');",
     "",
-    "-- Automático: política de retención → job 1001 (cada 24 h)",
+    "-- Automático: política de retención (se repite cada 24 h)",
     "SELECT add_retention_policy('vehiculos_grande', drop_after => INTERVAL '5 days');",
-    "CALL run_job(1001);   SELECT remove_retention_policy('vehiculos_grande');",
+    "CALL run_job(<job_id>);   SELECT remove_retention_policy('vehiculos_grande');",
 ], y=2.15, h=1.6, size=12)
 bullets(s, [
     dict(text="Borra **chunks completos**, no filas: elimina el chunk cuando su `range_end` queda antes de `now() - drop_after`.", size=15, bullet=True, space_after=4),
-    dict(text="En la demo: **3 → 2 chunks**; la autopurga se llevó exactamente un chunk (**−518.405 filas**).", size=15, bullet=True, space_after=4),
-    dict(text="Compresión (1000) y retención (1001) son **dos jobs distintos que se complementan**: comprimo lo viejo y, cuando pasa aún más tiempo, lo **borro**.", size=15, bullet=True, space_after=0),
+    dict(text="En la demo: **3 → 2 chunks**; la autopurga se llevó exactamente el más antiguo.", size=15, bullet=True, space_after=4),
+    dict(text="Compresión y retención son **dos políticas que se complementan**: comprimo lo viejo y, cuando pasa aún más tiempo, lo **borro**.", size=15, bullet=True, space_after=0),
 ], y=4.15)
 rect(s, 9.0, 4.15, 3.75, 1.6, fill=BG_PANEL, round_=True)
 textbox(s, 9.25, 4.4, 3.3, 1.3, [
@@ -458,7 +458,7 @@ textbox(s, 8.3, 5.6, 4.4, 1.2, [
 
 # S14 - Cagg
 s = new_slide()
-header(s, 14, "", "`11_continuous_aggregates.sql`", "Continuous aggregates: el resumen precalculado — job 1002")
+header(s, 14, "", "`11_continuous_aggregates.sql`", "Continuous aggregates: el resumen precalculado")
 bullets(s, [
     dict(text="Una **vista materializada** que guarda el resultado de `time_bucket + GROUP BY`; se refresca **por ventanas** (solo lo que cambió).", size=15, space_after=4),
     dict(text="Vive en su propia hypertable (`_materialized_hypertable_*` — el nombre cambia por recreación).", size=15, space_after=8),
@@ -471,7 +471,7 @@ code(s, [
     "SELECT add_continuous_aggregate_policy('cag_vel_hora',",
     "  start_offset => INTERVAL '1 month',",
     "  end_offset   => INTERVAL '1 hour',",
-    "  schedule_interval => INTERVAL '1 hour');  --→ job 1002",
+    "  schedule_interval => INTERVAL '1 hour');  -- refresco cada hora",
 ], y=5.5, w=8.2, size=12, h=1.15)
 rect(s, 9.0, 2.1, 3.75, 3.1, fill=BG_PANEL, round_=True)
 textbox(s, 9.25, 2.35, 3.3, 2.7, [
@@ -501,13 +501,13 @@ textbox(s, 0.6, 5.6, 12.1, 1.1, [
 
 # S16 - Jobs personalizados (script 13)
 s = new_slide()
-header(s, 16, "", "`13_jobs_personalizados_bonus.sql`", "Jobs personalizados: Timescale como cron de PostgreSQL — job 1004")
+header(s, 16, "", "`13_jobs_personalizados_bonus.sql`", "Jobs personalizados: Timescale como cron de PostgreSQL")
 code(s, [
     "SELECT add_job('calc_kpi_ultima_hora(int,jsonb)'::regprocedure,",
-    "               schedule_interval => INTERVAL '1 hour');  --→ 1003",
-    "CALL run_job(1003);                -- rellena kpi_velocidad (10 filas)",
-    "SELECT alter_job(1003, scheduled => false);  SELECT delete_job(1003);",
-    "SELECT add_job(...);               -- recreado → 1004",
+    "               schedule_interval => INTERVAL '1 hour');  -- se registra solo",
+    "CALL run_job(<job_id>);          -- rellena kpi_velocidad (10 filas)",
+    "SELECT alter_job(<job_id>, scheduled => false);  SELECT delete_job(<job_id>);",
+    "SELECT add_job(...);             -- recreado → otro id",
 ], y=2.15, h=1.45, size=12)
 bullets(s, [
     dict(text="Programas **cualquier procedimiento/función PostgreSQL** en el planificador de fondo: sin cron aparte.", size=15, bullet=True, space_after=4),
@@ -525,15 +525,15 @@ textbox(s, 9.25, 2.4, 3.3, 2.2, [
 
 # S17 - El circulo
 s = new_slide()
-header(s, 17, "RESUMEN", "El círculo de la telemetría: 4 jobs que mantienen viva la historia")
+header(s, 17, "RESUMEN", "El círculo de la telemetría: 4 políticas que mantienen viva la historia")
 row_h = 0.72
 steps = [
     ("INGESTA", "lotes ≥1000 o COPY", CYAN),
     ("HIPERTABLE", "chunks por tiempo · comprime lo viejo", TEXT),
-    ("COMPRIME (1000)", "rowstore → columnstore · −70 %", GREEN),
-    ("AGREGA (1002)", "cagg cada hora · −10× I/O", GREEN),
-    ("BORRA (1001)", "autopurga del chunk caducado", RED),
-    ("KPI (1004)", "cualquier procedimiento, cron propio", AMBER),
+    ("COMPRIME", "rowstore → columnstore · −70 %", GREEN),
+    ("AGREGA", "cagg cada hora · −10× I/O", GREEN),
+    ("BORRA", "autopurga del chunk caducado", RED),
+    ("KPI", "cualquier procedimiento, cron propio", AMBER),
 ]
 x0, y0, wstep, gap = 0.6, 2.5, 1.92, 0.07
 for i, (t, sub, col) in enumerate(steps):
@@ -547,7 +547,7 @@ if len(steps) > 1:
     textbox(s, x0, y0 + row_h + 0.12, 12.1, 0.6,
             [dict(text="→", size=32, bold=True, color=AMBER, align=PP_ALIGN.CENTER)])
 bullets(s, [
-    dict(text="Panel final de jobs (todo vivo): **1000** compresión · **1001** retención · **1002** refresh cagg · **1004** KPI custom.", size=16, bold=True, color=TEXT, space_after=4),
+    dict(text="Cuatro procesos de fondo vivos de principio a fin: compresión, retención, refresco del cagg y el KPI custom (cada uno con su id, asignado por Timescale).", size=16, bold=True, color=TEXT, space_after=4),
     dict(text="El pipeline completo: **comprimo lo viejo, agrego a mitad de camino y borro lo caducado — sin que nadie se acuerde**.", size=16, bold=True, color=AMBER, space_after=0),
 ], y=3.7)
 textbox(s, 0.6, 6.4, 12.1, 0.4, [dict(text="La telemetría que era un vertedero de números se convierte en un pipeline que decide por ti.", size=13, italic=True, color=MUTED)])
