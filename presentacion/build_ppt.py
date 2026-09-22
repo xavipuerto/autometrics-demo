@@ -296,7 +296,7 @@ textbox(s, 9.05, 2.45, 3.5, 2.5, [
 
 # S6 - Dimensionado de chunks
 s = new_slide()
-header(s, 6, "", "`02_gorda.sql`", "Dimensionar el chunk: la decisión que marca la diferencia")
+header(s, 6, "", "`02_grande.sql`", "Dimensionar el chunk: la decisión que marca la diferencia")
 bullets(s, [
     dict(text="Trocear muy fino dispara el **overhead por chunk**: cada trozo físico es una tabla, con sus metadatos, índices y páginas propias — más trozos, más gasto fijo.", size=14, bullet=True, space_after=8),
     dict(text="**Regla práctica**: un chunk debe cubrir ~**10-20 min de tu buffer target** de ingesta constante; menos chunks y más grandes reducen ese gasto.", size=14, bullet=True, space_after=8),

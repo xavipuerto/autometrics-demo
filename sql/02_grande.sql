@@ -1,4 +1,4 @@
--- 02_gorda.sql
+-- 02_grande.sql
 -- vehiculos_gorda: hypertable con chunks "gordos" de 3 días, en esquema particiones_gordas.
 -- Objetivo: 3 chunks de ~40MB que mañana podremos comprimir (ver 03_compresion.sql).
 --

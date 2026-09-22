@@ -63,7 +63,7 @@ hipertables bien diferenciadas:
 | # | Script | Demuestra |
 |---|---|---|
 | 01 | `01_ddl.sql` | 3 tablas idénticas: plana, hypertable y hypertable en esquema propio (360.000 filas c/u) |
-| 02 | `02_gorda.sql` | Chunks gordos de 3 días + compresión habilitada |
+| 02 | `02_grande.sql` | Chunks grandes de 3 días + compresión habilitada |
 | 03 | `03_compresion.sql` | `compress_chunk`: 2 chunks de 56→17 MB (~70 %) y política automática (job 1000) |
 | 04 | `04_insert_chunk_comprimido.sql` | Insertar sobre un chunk comprimido: overflow rowstore, sin descompresión, recompress |
 | 05 | `05_compresion_politica.sql` | Alta/baja/pausa de la política de compresión por SQL |
@@ -82,7 +82,7 @@ docker compose up -d              # arranca el entorno (auto-tunning por RAM/CPU
 
 # Cargar los scripts en orden (son idempotentes y se pasan por stdin)
 docker exec -i timescaledb psql -U postgres -d timeseries -v ON_ERROR_STOP=1 < sql/01_ddl.sql
-docker exec -i timescaledb psql -U postgres -d timeseries -v ON_ERROR_STOP=1 < sql/02_gorda.sql
+docker exec -i timescaledb psql -U postgres -d timeseries -v ON_ERROR_STOP=1 < sql/02_grande.sql
 docker exec -i timescaledb psql -U postgres -d timeseries -v ON_ERROR_STOP=1 < sql/03_compresion.sql
 # ... y así con el resto (07/08/10 para las consultas, 09 retención, 11 cagg, 13 bonus)
 ```
