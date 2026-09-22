@@ -12,31 +12,17 @@ reproducibles y el entorno Docker lista para levantar.
 
 ## Quién soy
 
-Soy **Javier Aragón Díaz**, ingeniero informático y, sobre todo, una persona
-que lleva más de dos décadas enamorada de los datos.
+Soy **Javier Aragón**, arquitecto IT — me encuentras en
+[javier.aragon.diaz@gmail.com](mailto:javier.aragon.diaz@gmail.com).
 
-Mi trayectoria es la de alguien que empezó donde todo empieza: en 2004,
-administrando los sistemas de una distribuidora de combustibles en
-Puertollano — dominios, redes, VPNs, y sobre todo **bases de datos y
-reporting**. Recuerdo perfectamente la primera vez que una consulta SQL
-"organizó" el caos de cientos de miles de registros.
+Hoy trabajo en **Idrica · Xylem** en proyectos internacionales: soluciones
+que, como esta demo, cruzan datos, infraestructuras y personas de varios
+países.
 
-Desde entonces todo ha sido subir de nivel, sin soltar el hilo de los datos:
-
-- **Becario de sistemas** en una planta fotovoltaica (ISFOC) y luego
-  **emprendedor IT** creando proyectos web propios.
-- **Consultor IT / ingeniero de sistemas** en Tecnocoom (BBVA), Indra
-  (Educación y Sanidad Madrileña, Banco Santander, Orange) y Capgemini —
-  tomando requisitos, modelando datos y construyendo **cuadros de mando**.
-- Desde 2018, **Jefe de Proyectos IT Financiero en Mercadona**, liderando
-  proyectos con una obsesión: que los KPI sean ciertos, medibles y usables.
-- Formación continua: **Ingeniería Técnica en Informática de Sistemas**
-  (UCLM), **Máster en Business Intelligence** (UOC), certificación
-  **Oracle Database SQL Expert**, y un **MBA** en curso.
-
-Toda mi carrera es la misma pregunta repetida con herramientas nuevas:
-*¿qué están diciendo estos datos?* SQL, Oracle, Business Objects, Netezza…
-y ahora, para telemetría e IoT en tiempo real, **TimescaleDB**.
+Y si te soy sincero: **cada vez me siento más junior**. Después de más de dos
+décadas viviendo de las bases de datos, sigo queriendo aprender con la
+curiosidad de mi primer día. Esta demo no es un "mira lo que sé", es un
+*venid, probemos juntos*.
 
 ## Por qué esta demo me hace vibrar
 
@@ -145,6 +131,6 @@ Detalles que ahorran tropiezos en directo:
 
 ---
 
-**Javier Aragón Díaz** · jefe de proyectos IT, obsesionado con los datos ·
+**Javier Aragón** · arquitecto IT, cada día más junior y más curioso ·
 [javier.aragon.diaz@gmail.com](mailto:javier.aragon.diaz@gmail.com) ·
 [LinkedIn](https://es.linkedin.com/in/javieraragondiaz)
