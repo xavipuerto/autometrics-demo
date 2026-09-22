@@ -45,3 +45,20 @@ SELECT chunk_name, is_compressed,
 FROM timescaledb_information.chunks
 WHERE hypertable_name = 'vehiculos_gorda'
 ORDER BY range_start;
+
+-- ---------------------------------------------------------------
+-- 6) BORRAR EL JOB DE COMPRESIÓN (por si no te ha convencido)
+--    Elimina la política y su job de fondo de golpe:
+SELECT remove_compression_policy('vehiculos_gorda');
+--    Verificar que ya no existe:
+--    SELECT job_id, proc_name FROM timescaledb_information.jobs
+--    WHERE proc_name LIKE 'policy_compression%';   -- -> 0 filas
+
+-- 7) Alternativas a borrar del todo:
+--    a) Pausar el job (lo dejas creado pero sin ejecutarse):
+SELECT alter_job(1000, scheduled => false);
+--    Reanudarlo cuando quieras:
+SELECT alter_job(1000, scheduled => true);
+--    b) Cambiar la ventana de compresión sin recrear (más agresivo/menos agresivo):
+--    SELECT alter_job(1000, config => '{"compress_after": 259200000000}');  -- 3 días en microsegundos
+--    c) Seguir comprimiendo a mano sin política: compress_chunk (ver 03_compresion.sql)
