@@ -112,8 +112,17 @@ SELECT create_hypertable(
 -- ============================================================================
 -- Carga de datos aleatorios (24 lecturas/dia x 10 coches, una por hora)
 -- ============================================================================
+--
+-- Cada INSERT rellena:
+--   10 coches (auto_id 1..10)
+--   x 24 lecturas al dia (h = 0..23, una por hora)
+--   x :dias_datos dias (por defecto 1500)
+--   = 360.000 registros por tabla  (~35 MB c/u en vehiculos_plana)
+--
+-- Los valores de los 10 sensores se generan con random() en rangos realistas
+-- (presion_ruedas 2,3-2,6 bar, velocidad 0-140 km/h, etc.).
 
--- 1) vehiculos_plana
+-- 1) vehiculos_plana --> INSERT 0 360000 (0 dias extra si cambias :dias_datos)
 INSERT INTO vehiculos_plana (auto_id, ts, presion_ruedas, nivel_combustible, carga_bateria,
                             temperatura_motor, temperatura_bateria, presion_aceite, velocidad,
                             revoluciones, consumo_potencia, autonomia)
@@ -133,7 +142,7 @@ FROM generate_series(1, 10) a,
      generate_series(0, :dias_datos - 1) d,
      generate_series(0, 23) h;
 
--- 2) vehiculos_ts
+-- 2) vehiculos_ts --> INSERT 0 360000 (otras 360.000 filas, ahora en chunks diarios)
 INSERT INTO vehiculos_ts (auto_id, ts, presion_ruedas, nivel_combustible, carga_bateria,
                          temperatura_motor, temperatura_bateria, presion_aceite, velocidad,
                          revoluciones, consumo_potencia, autonomia)
@@ -153,7 +162,7 @@ FROM generate_series(1, 10) a,
      generate_series(0, :dias_datos - 1) d,
      generate_series(0, 23) h;
 
--- 3) vehiculos_part
+-- 3) vehiculos_part --> INSERT 0 360000 (otras 360.000, chunks en esquema 'particiones')
 INSERT INTO vehiculos_part (auto_id, ts, presion_ruedas, nivel_combustible, carga_bateria,
                           temperatura_motor, temperatura_bateria, presion_aceite, velocidad,
                           revoluciones, consumo_potencia, autonomia)
@@ -172,3 +181,8 @@ SELECT a,
 FROM generate_series(1, 10) a,
      generate_series(0, :dias_datos - 1) d,
      generate_series(0, 23) h;
+
+-- Verificación de conteos (para el speech: cuantos registros hay en cada tabla)
+SELECT 'vehiculos_plana' AS tabla, count(*) AS registros FROM vehiculos_plana
+UNION ALL SELECT 'vehiculos_ts', count(*) FROM vehiculos_ts
+UNION ALL SELECT 'vehiculos_part', count(*) FROM vehiculos_part;
