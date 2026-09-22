@@ -16,17 +16,14 @@
 --     cuando su ventana quede atrás (approx. 24h después).
 --   - next_start queda fijado a +24h; ver job_stats para el próximo run.
 
--- 1) Crear la política (si no existe ya)
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM timescaledb_information.jobs
-                 WHERE proc_name = 'policy_compression'
-                   AND hypertable_name = 'vehiculos_gorda') THEN
-    PERFORM add_compression_policy('vehiculos_gorda',
-                                   compress_after     => INTERVAL '24 hours',
-                                   schedule_interval  => INTERVAL '24 hours');
-  END IF;
-END $$;
+-- 1) Crear la política (devuelve el job_id creado, p.ej. 1000)
+SELECT add_compression_policy('vehiculos_gorda',
+       compress_after     => INTERVAL '24 hours',
+       schedule_interval  => INTERVAL '24 hours');
+--    Ojo: si ya existe salta error "policy already exists".
+--    Para ver un job existente:
+--    SELECT job_id, proc_name, schedule_interval FROM timescaledb_information.jobs
+--    WHERE proc_name LIKE 'policy_compression%';
 
 -- 2) Ver el job creado
 SELECT job_id, proc_name, schedule_interval, hypertable_name
