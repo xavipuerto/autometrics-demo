@@ -31,11 +31,19 @@ FROM timescaledb_information.continuous_aggregates;
 --    materialized_only = t  -> no hay real-time: refrescar para ver lo nuevo.
 
 -- 3) Tamaños reales (suma de chunks, no de la vista):
---    vehiculos_ts (cruda) = 94 MB | cagg = 57 MB (aún SIN comprimir).
+--    vehiculos_ts (cruda) = 94 MB | cagg ~57 MB (aún SIN comprimir).
+--    NOTA (lección de la recreación): el nombre de la hypertable
+--    materializada (_materialized_hypertable_4/_8/...) CAMBIA según el
+--    historial del entorno: lo resolvemos en vez de hardcodearlo.
 SELECT pg_size_pretty(sum(pg_total_relation_size(c))) AS cruda_size
 FROM show_chunks('vehiculos_ts') c;
+WITH mh AS (
+  SELECT materialization_hypertable_name
+  FROM timescaledb_information.continuous_aggregates
+  WHERE view_name = 'cag_vel_hora'
+)
 SELECT pg_size_pretty(sum(pg_total_relation_size(c))) AS cagg_size
-FROM show_chunks('_timescaledb_internal._materialized_hypertable_8') c;
+FROM mh, LATERAL show_chunks(format('%I.%I', '_timescaledb_internal', mh.materialization_hypertable_name)) c;
 
 -- 4) Rendimiento medido (1 año = 87.600 lecturas):
 --    cruda: ~50 ms · 4500 buffers | cagg: ~15 ms · 3450 buffers (~3x).

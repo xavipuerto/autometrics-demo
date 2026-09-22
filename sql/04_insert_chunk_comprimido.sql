@@ -8,20 +8,19 @@
 --   El merge con el columnstore ocurre al recomprimir (compress_chunk /
 --   recompress_chunk) o con la política de compresión.
 --
--- Medidas tomadas en la prueba (2026-09-22):
---   - 5 filas en 1 INSERT (batch):        5,6 ms
---   - 5 INSERT de 1 fila (uno a uno):     3,95 + 0,56 + 0,44 + 0,50 + 0,67 ms
---   - CALL recompress_chunk()             13 ms  (deprecada en 2.18+; ahora es compress_chunk)
---   - Contenedor durante el proceso:      CPU ~1,9 %, MEM ~702 MiB
---   - Integridad: count(*) se mantiene (518.400 + filas insertadas).
+-- NOTA (lección de la recreación): los nombres de chunk SON ELEGIDOS POR
+-- TIMESCALE y cambian si recreas el entorno (aquí vehiculos_gorda_3001_chunk,
+-- 3002, 3003; en la demo anterior fueron 6003/6004/6005). Este script ya NO
+-- usa nombres fijos: resuelve los chunks por su rango temporal.
 
--- 0) Estado previo: chunks comprimidos
+-- 0) Estado previo: chunks comprimidos (3001 y 3002 ya lo están)
 SELECT chunk_name, is_compressed, range_start, range_end
 FROM timescaledb_information.chunks
 WHERE hypertable_name = 'vehiculos_gorda'
 ORDER BY range_start;
 
--- 1) INSERT por lotes (5 filas en un solo statement) sobre chunk comprimido 6003
+-- 1) INSERT por lotes (5 filas en un solo statement) sobre el chunk MÁS
+--    antiguo (comprimido): aquí cae en el intervalo [09-13, 09-16).
 \timing on
 INSERT INTO vehiculos_gorda (auto_id, ts, presion_ruedas, nivel_combustible, carga_bateria,
                              temperatura_motor, temperatura_bateria, presion_aceite, velocidad,
@@ -33,7 +32,8 @@ INSERT INTO vehiculos_gorda (auto_id, ts, presion_ruedas, nivel_combustible, car
 (5, '2026-09-14 12:04:00+00', 2.43, 40, 66, 95.4, 31.6, 3.1, 84.2, 2400, 14.0, 317);
 \timing off
 
--- 2) INSERT "registro a registro" (5 statements de 1 fila) sobre chunk comprimido 6004
+-- 2) INSERT "registro a registro" (5 statements de 1 fila) sobre el chunk
+--    del medio [09-16, 09-19) (también comprimido)
 INSERT INTO vehiculos_gorda (auto_id, ts, presion_ruedas, nivel_combustible, carga_bateria,
                              temperatura_motor, temperatura_bateria, presion_aceite, velocidad,
                              revoluciones, consumo_potencia, autonomia)
@@ -55,18 +55,23 @@ INSERT INTO vehiculos_gorda (auto_id, ts, presion_ruedas, nivel_combustible, car
                              revoluciones, consumo_potencia, autonomia)
 VALUES (10, '2026-09-17 12:00:04+00', 2.43, 40, 66, 95.4, 31.6, 3.1, 84.2, 2400, 14.0, 317);
 
--- 3) Estado tras insertar: el chunk sigue "comprimido" pero crece (overflow rowstore)
-SELECT chunk_name, is_compressed, pg_size_pretty(pg_total_relation_size(to_regclass('particiones_gordas.'||chunk_name))) AS size
-FROM timescaledb_information.chunks
-WHERE hypertable_name = 'vehiculos_gorda'
-ORDER BY range_start;
+-- 3) Estado tras insertar: los chunks siguen "comprimidos" pero CRECEN
+--    (overflow rowstore). Los resuelvo por rango, no por nombre.
+SELECT c.chunk_name,
+       c.is_compressed,
+       pg_size_pretty(pg_total_relation_size(format('%I.%I', c.chunk_schema, c.chunk_name)::regclass)) AS size,
+       c.range_start
+FROM timescaledb_information.chunks c
+WHERE c.hypertable_name = 'vehiculos_gorda'
+ORDER BY c.range_start;
 
--- 4) Mezclar el overflow de vuelta al columnstore (recompresion)
-CALL recompress_chunk('particiones_gordas.vehiculos_gorda_6004_chunk');
--- En TimescaleDB 2.18+ recompress_chunk esta deprecada: usa compress_chunk()
--- SELECT compress_chunk('particiones_gordas.vehiculos_gorda_6004_chunk');
+-- 4) Mezclar el overflow de vuelta al columnstore (recompresion) sobre el
+--    chunk del medio. En 2.18+ recompress_chunk está deprecada: usar
+--    compress_chunk(). Resolución dinámica del chunk [09-16, 09-19).
+SELECT compress_chunk(format('%I.%I', c.chunk_schema, c.chunk_name)::regclass)
+FROM timescaledb_information.chunks c
+WHERE c.hypertable_name = 'vehiculos_gorda'
+  AND c.range_start = '2026-09-16 00:00:00+00';
 
--- 5) Integridad: conteo de filas del chunk 6004 (era 518.400 + 5 = 518.405)
-SELECT count(*) AS filas_chunk_6004
-FROM vehiculos_gorda
-WHERE ts >= '2026-09-16'::timestamptz AND ts < '2026-09-19'::timestamptz;
+-- 5) Integridad: la tabla no ha perdido filas (1.555.200 + 10 insertadas).
+SELECT count(*) AS filas_total_gorda FROM vehiculos_gorda;
