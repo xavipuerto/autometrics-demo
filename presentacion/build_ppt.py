@@ -125,11 +125,11 @@ def footer(slide, idx):
             [dict(text=f"{idx:02d} / {TOTAL_SLIDES}", size=9, color=MUTED, align=PP_ALIGN.RIGHT)])
 
 def header(slide, idx, kick, title, sub=None):
-    kicker(slide, 0.6, 0.42, 9.0, kick)
-    h_title(slide, 0.6, 0.74, 12.1, title)
+    ty = 0.5
+    h_title(slide, 0.6, ty, 12.1, title)
     if sub:
-        textbox(slide, 0.6, 1.38, 12.1, 0.4, [dict(text=sub, size=13, color=MUTED)])
-    rule(slide, 0.6, 1.13 if not sub else 1.82, 1.05)
+        textbox(slide, 0.6, ty + 0.64, 12.1, 0.4, [dict(text=sub, size=13, color=MUTED)])
+    rule(slide, 0.6, ty + 0.39, 1.05)
     footer(slide, idx)
 
 def bullets(slide, items, x=0.6, y=2.1, w=8.2, gap=8):
@@ -245,22 +245,23 @@ textbox(s, 0.6, 6.75, 12.0, 0.3, [dict(text="Todas las cifras salen de la recrea
 
 # S4 - El problema
 s = new_slide()
-header(s, 4, "APARTADO 00 · CONTEXTO", "¿Qué tiene de especial un dato 'de serie temporal'?")
+header(s, 4, "", "TimescaleDB: el dato de serie temporal nativo de PostgreSQL")
 bullets(s, [
-    dict(text="Es una **medida con su timestamp**: solo se añade, casi nunca se actualiza, y el histórico no cambia.", size=16),
-    dict(text="Las preguntas siempre son por **ventanas**: ¿cuánto y cómo en la última hora, día o mes?", size=16),
-    dict(text="Crece sin fin: lo que hoy son miles de filas, mañana son millones.", size=16),
-    dict(text="Nuestra demo: **10 coches × 24 lecturas/hora × N días × 10 sensores** (velocidad, rpm, temperaturas, presiones, autonomía…).", size=16),
-], y=2.2)
-rect(s, 8.8, 2.2, 4.0, 3.1, fill=BG_PANEL, round_=True)
-textbox(s, 9.05, 2.5, 3.5, 2.6, [
-    dict(text="En números", size=14, bold=True, color=AMBER, space_after=8),
-    dict(text="360 001", size=26, bold=True, color=GREEN),
-    dict(text="lecturas por tabla · 4 años", size=11, color=MUTED, space_after=8),
-    dict(text="1 555 200", size=26, bold=True, color=GREEN),
-    dict(text="lecturas de flota cada lectura / 5 s · 9 días", size=11, color=MUTED),
+    dict(text="Es una **extensión de PostgreSQL** (`CREATE EXTENSION timescaledb;`), no un motor aparte: SQL, `EXPLAIN` y catálogo son los de siempre.", size=15, space_after=8),
+    dict(text="Cubre la necesidad que nos trae aquí: **lecturas que llegan sin parar** — IoT, telemetría de flota, métricas, datos financieros — que hay que guardar, consultar por ventanas de tiempo y ordenar su ciclo de vida.", size=15, space_after=8),
+    dict(text="Y lo hace **sin cambiar de base de datos**: si ya usas PostgreSQL, lo añades y ya.", size=15, space_after=0),
+], y=2.15)
+rect(s, 8.8, 2.15, 3.95, 3.4, fill=BG_PANEL, round_=True)
+textbox(s, 9.05, 2.4, 3.45, 3.0, [
+    dict(text="Lo que aporta", size=14, bold=True, color=AMBER, space_after=8),
+    dict(text="· Hipertables: una tabla lógica, particiones por tiempo por dentro", size=12, color=TEXT, space_after=4),
+    dict(text="· Compresión nativa de los bloques viejos", size=12, color=TEXT, space_after=4),
+    dict(text="· Agregados continuos precalculados", size=12, color=TEXT, space_after=4),
+    dict(text="· Retención y autopurga del histórico", size=12, color=TEXT, space_after=4),
+    dict(text="· Jobs de fondo con cualquier SQL", size=12, color=TEXT, space_after=8),
+    dict(text="Y por debajo, el PostgreSQL que ya conoces.", size=12, italic=True, color=MUTED),
 ])
-textbox(s, 0.6, 6.4, 12.0, 0.4, [dict(text="Construido sin borrar la historia: ese es el campo de juego de TimescaleDB.", size=14, bold=True, color=AMBER)])
+textbox(s, 0.6, 6.2, 12.1, 0.5, [dict(text="Mismo SQL, mismo EXPLAIN, mismo catálogo: la diferencia es lo que el motor hace con las tablas por dentro.", size=13, italic=True, color=MUTED)])
 
 # S5 - Hypertables y chunks
 s = new_slide()

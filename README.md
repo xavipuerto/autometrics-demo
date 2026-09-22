@@ -10,21 +10,7 @@ reproducibles y el entorno Docker lista para levantar.
 
 ---
 
-## Quién soy
-
-Soy **Javier Aragón**, arquitecto IT — me encuentras en
-[javier.aragon.diaz@gmail.com](mailto:javier.aragon.diaz@gmail.com).
-
-Hoy trabajo en **Idrica · Xylem** en proyectos internacionales: soluciones
-que, como esta demo, cruzan datos, infraestructuras y personas de varios
-países.
-
-Y si te soy sincero: **cada vez me siento más junior**. Después de más de dos
-décadas viviendo de las bases de datos, sigo queriendo aprender con la
-curiosidad de mi primer día. Esta demo no es un "mira lo que sé", es un
-*venid, probemos juntos*.
-
-## Por qué esta demo me hace vibrar
+## Por qué esta demo
 
 Esta no es una charla sobre "otra base de datos". Es la historia de siempre
 con la herramienta que la hace posible:
@@ -125,12 +111,10 @@ Detalles que ahorran tropiezos en directo:
 
 ## Para cerrar
 
-> *"Mi carrera es una sola frase repetida: hacer que los datos cuenten algo
-> útil. TimescaleDB es otro capítulo de esa frase — y esta demo, su mejor
-> resumen."*
+> *"La telemetría cuenta algo útil si alguien hace las preguntas correctas.
+> PostgreSQL + TimescaleDB hacen el resto."*
 
 ---
 
-**Javier Aragón** · arquitecto IT, cada día más junior y más curioso ·
-[javier.aragon.diaz@gmail.com](mailto:javier.aragon.diaz@gmail.com) ·
-[LinkedIn](https://es.linkedin.com/in/javieraragondiaz)
+Laboratorio reproducible de **TimescaleDB sobre PostgreSQL** — scripts,
+entorno Docker y presentación incluidos.
