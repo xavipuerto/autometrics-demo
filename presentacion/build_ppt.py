@@ -132,11 +132,11 @@ def footer(slide, idx):
             [dict(text=f"{idx:02d} / {TOTAL_SLIDES}", size=9, color=MUTED, align=PP_ALIGN.RIGHT)])
 
 def header(slide, idx, kick, title, sub=None):
-    ty = 0.5
+    ty = 0.42
     h_title(slide, 0.6, ty, 12.1, title)
     if sub:
-        textbox(slide, 0.6, ty + 0.64, 12.1, 0.4, [dict(text=sub, size=13, color=MUTED)])
-    rule(slide, 0.6, ty + 0.39, 1.05)
+        textbox(slide, 0.6, ty + 0.60, 12.1, 0.4, [dict(text=sub, size=13, color=MUTED)])
+    rule(slide, 0.6, ty + 0.53, 1.05)
     footer(slide, idx)
 
 def bullets(slide, items, x=0.6, y=2.1, w=8.2, gap=8):
