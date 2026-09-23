@@ -228,10 +228,10 @@ textbox(s, 0.8, 5.7, 11.7, 1.0, [
 s = new_slide()
 header(s, 2, "ASÍ ABRIMOS", "¿Quién os habla?")
 bullets(s, [
-    dict(text="**Javier Aragón** — arquitecto IT.", size=16, bullet=False, space_after=6),
+    dict(text="**Javier Aragón** - Arquitecto IT.", size=16, bullet=False, space_after=6),
     dict(text="javier.aragon.diaz@gmail.com", size=16, bullet=False, color=CYAN, space_after=6),
-    dict(text="Actualmente en **Idrica · Xylem**, en proyectos internacionales.", size=16, bullet=False, space_after=6),
-    dict(text="Y cada vez me siento más junior.", size=16, bullet=False, italic=True, color=AMBER, space_after=0),
+    dict(text="Actualmente en **Idrica · Xylem** en proyectos de aquí de allá.", size=16, bullet=False, space_after=6),
+    dict(text="Y cada año, aunque no lo parezca, me siento más junior.", size=16, bullet=False, italic=True, color=AMBER, space_after=0),
 ], y=2.9, w=8.0)
 
 # S3 - Agenda
