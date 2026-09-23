@@ -292,7 +292,7 @@ code(s, [
     "",
     "-- Con associated_schema_name => 'particiones' los chunks",
     "-- viven en tu esquema con nombre derivado: vehiculos_part_*_chunk",
-], y=4.15, h=1.05)
+], y=4.15, h=1.63)
 rect(s, 8.8, 2.2, 4.0, 3.0, fill=BG_PANEL, round_=True)
 textbox(s, 9.05, 2.45, 3.5, 2.5, [
     dict(text="Resultado", size=14, bold=True, color=AMBER, space_after=6),
@@ -387,7 +387,7 @@ code(s, [
     "CALL run_job(<job_id>);       -- forzarlo a mano (procedimiento)",
     "SELECT alter_job(<job_id>, scheduled => false);     -- pausar",
     "SELECT remove_compression_policy('vehiculos_grande'); -- borrar",
-], y=2.2, h=1.7, size=13)
+], y=2.2, h=1.95, size=13)
 bullets(s, [
     dict(text="Cada **24 h** comprime/recomprime todo chunk cuyo rango terminó hace **>24 h**.", size=15, bullet=True, space_after=4),
     dict(text="**Reabsorbe el overflow** del rowstore al columnstore sin intervención manual.", size=15, bullet=True, space_after=4),
@@ -450,7 +450,7 @@ code(s, [
     "       round(avg(velocidad)::numeric,1) AS vel_media",
     "FROM vehiculos_ts",
     "GROUP BY 1 ORDER BY 1;",
-], y=2.15, h=1.25, size=13)
+], y=2.15, h=1.49, size=13)
 bullets(s, [
     dict(text="A diferencia de `date_trunc`, alinea con una **parrilla fija**: sirve para `2 hours`, `90 minutes`, semanas… y series uniformes.", size=15, bullet=True, space_after=4),
     dict(text="Resultado real (2026-05-15): **24 filas**, cada una con sus 10 lecturas de la hora.", size=15, bullet=True, space_after=4),
