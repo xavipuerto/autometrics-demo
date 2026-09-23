@@ -1,1 +1,6 @@
 pruebas.md
+.DS_Store
+.chart-data-*/
+.ppt-build/
+presentacion/guion-25-minutos.md
+presentacion/timescaledb-universidad*.pptx

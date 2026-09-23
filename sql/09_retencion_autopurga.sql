@@ -51,4 +51,5 @@ ORDER BY range_start;
 SELECT count(*) AS total_filas FROM vehiculos_grande;  -- menos las filas del chunk purgado (518.405)
 
 -- 6) Si cambias de opinión: eliminar la política de retención
-SELECT remove_retention_policy('vehiculos_grande');
+-- SELECT remove_retention_policy('vehiculos_grande');  -- COMENTADO: lo dejamos
+--     vivo para el panel final de jobs (compresión + retención + refresco + kpi).

@@ -381,7 +381,7 @@ s = new_slide()
 header(s, 10, "", "`05_compresion_politica.sql`", "La política de compresión: se ocupa de todo sola")
 code(s, [
     "SELECT add_compression_policy('vehiculos_grande',",
-    "       compress_after    => INTERVAL '24 hours',",
+    "       compress_after    => INTERVAL '7 days',",
     "       schedule_interval => INTERVAL '24 hours');  -- el id lo asigna Timescale",
     "",
     "CALL run_job(<job_id>);       -- forzarlo a mano (procedimiento)",
@@ -389,9 +389,9 @@ code(s, [
     "SELECT remove_compression_policy('vehiculos_grande'); -- borrar",
 ], y=2.2, h=1.95, size=13)
 bullets(s, [
-    dict(text="Cada **24 h** comprime/recomprime todo chunk cuyo rango terminó hace **>24 h**.", size=15, bullet=True, space_after=4),
+    dict(text="El job corre cada **24 h** y comprime todo chunk cuyo rango terminó hace **>7 días**.", size=15, bullet=True, space_after=4),
     dict(text="**Reabsorbe el overflow** del rowstore al columnstore sin intervención manual.", size=15, bullet=True, space_after=4),
-    dict(text="**Respeta el chunk activo**: nunca toca la ventana reciente (por eso el chunk de control sigue sin comprimir).", size=15, bullet=True, space_after=4),
+    dict(text="**Respeta la ventana reciente**: con `compress_after` amplio, el chunk de control sigue sin comprimir el día de la demo.", size=15, bullet=True, space_after=4),
     dict(text="`job_stats` / `job_history` muestran la ejecución en vivo: éxito, tiempos, siguiente arranque.", size=15, bullet=True, space_after=0),
 ], y=4.15)
 rect(s, 9.0, 2.2, 3.75, 2.35, fill=BG_PANEL, round_=True)

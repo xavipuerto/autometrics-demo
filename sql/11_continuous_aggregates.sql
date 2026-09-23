@@ -46,7 +46,7 @@ SELECT pg_size_pretty(sum(pg_total_relation_size(c))) AS cagg_size
 FROM mh, LATERAL show_chunks(format('%I.%I', '_timescaledb_internal', mh.materialization_hypertable_name)) c;
 
 -- 4) Rendimiento medido (1 año = 87.600 lecturas):
---    cruda: ~50 ms · 4500 buffers | cagg: ~15 ms · 3450 buffers (~3x).
+--    cruda: ~30 ms | cagg: ~10 ms (~3x). (Cifras de la recreación final de la demo.)
 --    Con más histórico y chunks comprimidos la diferencia se dispara.
 EXPLAIN (ANALYZE, BUFFERS, COSTS OFF)
 SELECT round(avg(velocidad)::numeric,1) FROM vehiculos_ts
@@ -57,8 +57,10 @@ WHERE hora >= '2027-01-01'::timestamptz AND hora < '2028-01-01'::timestamptz;
 
 -- 5) GOTCHA 2.30 (probado en la demo): insertar una fila futura y consultar
 --    el cagg -> NO aparece (materialized_only = t).
---    INSERT INTO vehiculos_ts ... VALUES (1, '2030-02-09 23:00:00+00', ...);
---    SELECT * FROM cag_vel_hora WHERE hora = '2030-02-09 23:00:00+00';  -- 0 filas
+INSERT INTO vehiculos_ts (auto_id, ts, velocidad)
+VALUES (1, '2030-02-09 23:00:00+00', 88.0);   -- 1 fila: crea bucket nuevo (cagg no lo ve)
+SELECT hora, round(vel_media,1) AS vel_media, lecturas
+FROM cag_vel_hora WHERE hora = '2030-02-09 23:00:00+00';  -- 0 filas (materialized_only=t)
 
 -- 6) Refresco A MANO (procedimiento, no SELECT):
 CALL refresh_continuous_aggregate('cag_vel_hora',
@@ -78,11 +80,11 @@ SELECT add_continuous_aggregate_policy('cag_vel_hora',
 -- 8) Estado de los jobs de política (el "panel" de la demo):
 SELECT job_id, proc_name, schedule_interval
 FROM timescaledb_information.jobs
-WHERE job_id IN (1000, 1001, 1002)
+WHERE proc_name LIKE 'policy_%'
 ORDER BY job_id;
---    1000 policy_compression                   cada 24 h
---    1001 policy_retention                     cada 24 h
---    1002 policy_refresh_continuous_aggregate  cada 1 h
+--    policy_compression                   cada 24 h
+--    policy_retention                     cada 24 h
+--    policy_refresh_continuous_aggregate  cada 1 h
 
 -- 9) Opcional: comprimir el cagg (como cualquier hypertable) para que el
 --    histórico materializado pese aún menos:
