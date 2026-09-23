@@ -252,8 +252,8 @@ items = [
     "El círculo de la telemetría — resumen",
 ]
 col1 = items[:6]; col2 = items[6:]
-for col, xx in ((col1, 0.6), (col2, 6.9)):
-    paras = [dict(text=f"{n:02d}   " + t, size=14, space_after=10) for n, t, in enumerate(col, start=1)]
+for ci, (col, xx) in enumerate(((col1, 0.6), (col2, 6.9))):
+    paras = [dict(text=f"{ci*6 + n:02d}   " + t, size=14, space_after=10) for n, t in enumerate(col, start=1)]
     textbox(s, xx, 2.35, 5.9, 4.5, paras)
 textbox(s, 0.6, 6.75, 12.0, 0.3, [dict(text="Todas las cifras salen de la recreación del entorno desde cero (sept 2026).", size=11, italic=True, color=MUTED)])
 
