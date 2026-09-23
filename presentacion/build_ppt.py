@@ -2,6 +2,7 @@
 """Genera la PPT tecnica de TimescaleDB (cada apartado tecnologico probado en pruebas.md)."""
 
 import re
+import os
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
@@ -9,19 +10,23 @@ from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.oxml.ns import qn
 
+IMG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "img")
+
 # ----------------------------- tema ------------------------------
-BG      = RGBColor(0x0F, 0x17, 0x2A)   # dark navy
-BG_PANEL= RGBColor(0x1E, 0x29, 0x3B)
-BG_PANEL2=RGBColor(0x23, 0x2F, 0x47)
-BG_CODE = RGBColor(0x0A, 0x12, 0x20)
-AMBER   = RGBColor(0xFB, 0xBF, 0x24)   # accent
-CYAN    = RGBColor(0x7D, 0xD3, 0xFC)
-GREEN   = RGBColor(0x4A, 0xDE, 0x80)
-RED     = RGBColor(0xF8, 0x71, 0x71)
-TEXT    = RGBColor(0xE2, 0xE8, 0xF0)
-MUTED   = RGBColor(0x94, 0xA3, 0xB8)
-LINE    = RGBColor(0x33, 0x41, 0x55)
-DARK    = RGBColor(0x0B, 0x12, 0x20)
+BG       = RGBColor(0xFF, 0xFF, 0xFF)   # blanco
+BG_PANEL = RGBColor(0xF2, 0xF4, 0xF8)   # gris panel
+BG_PANEL2= RGBColor(0xE6, 0xEA, 0xF2)
+BG_CODE  = RGBColor(0x0A, 0x12, 0x20)   # bloques de código (se mantienen oscuros)
+AMBER    = RGBColor(0xB4, 0x53, 0x09)   # ámbar oscuro para texto sobre blanco
+AMBER_LINE = RGBColor(0xFB, 0xBF, 0x24) # ámbar para líneas/rellenos decorativos
+CYAN     = RGBColor(0x0E, 0x74, 0x90)   # azul-cyan de texto sobre blanco
+CODE     = RGBColor(0x7D, 0xD3, 0xFC)   # cyan claro para código sobre fondo oscuro
+GREEN    = RGBColor(0x15, 0x80, 0x3D)
+RED      = RGBColor(0xB9, 0x1C, 0x1C)
+TEXT     = RGBColor(0x1F, 0x29, 0x37)
+MUTED    = RGBColor(0x6B, 0x72, 0x80)
+LINE     = RGBColor(0xD1, 0xD5, 0xDB)
+DARK     = RGBColor(0x1F, 0x29, 0x37)
 
 F_TITLE = "Helvetica Neue"
 F_BODY  = "Helvetica Neue"
@@ -41,6 +46,8 @@ def new_slide():
     r.fill.solid(); r.fill.fore_color.rgb = BG
     r.line.fill.background()
     r.shadow.inherit = False
+    s.shapes.add_picture(os.path.join(IMG_DIR, "pg_elephant.png"),
+                         Inches(11.6), Inches(0.22), width=Inches(1.5))
     return s
 
 def rect(slide, x, y, w, h, fill=None, line=None, line_w=1.0, round_=False):
@@ -72,7 +79,7 @@ def _apply_runs(p, text, base_color, mono=False):
             r.font.name = F_MONO
             r.font.size = p.font.size if p.font.size else Pt(13)
             r.font.bold = True
-            r.font.color.rgb = CYAN
+            r.font.color.rgb = CODE if base_color == CODE else CYAN
         elif t.startswith("**") and t.endswith("**"):
             r.text = t[2:-2]
             r.font.bold = True
@@ -120,7 +127,7 @@ def h_title(slide, x, y, w, text, size=30):
     p.font.color.rgb = TEXT
     _apply_runs(p, text, TEXT)
 
-def rule(slide, x, y, w, color=AMBER, h=0.045):
+def rule(slide, x, y, w, color=AMBER_LINE, h=0.045):
     rect(slide, x, y, w, h, fill=color)
 
 def footer(slide, idx):
@@ -164,7 +171,7 @@ def code(slide, lines, x=0.6, y=2.1, w=8.4, size=13, h=None):
     h = h if h else 0.42 + 0.30 * len(lines)
     rect(slide, x, y, w, h, fill=BG_CODE, round_=True)
     textbox(slide, x + 0.25, y + 0.15, w - 0.5, h - 0.3,
-            [dict(text=ln, size=size, color=CYAN, font=F_MONO, space_after=3) for ln in lines],
+            [dict(text=ln, size=size, color=CODE, font=F_MONO, space_after=3) for ln in lines],
             anchor=MSO_ANCHOR.TOP)
 
 def big_stat(slide, x, y, w, number, caption, number_color=AMBER, size=40):
@@ -180,7 +187,7 @@ def panel_table(slide, x, y, w, headers, rows, col_w, row_h=0.36, header_h=0.36,
     for ww in widths:
         xs.append(cx); cx += ww
     # header
-    hr = rect(slide, x, y, w, header_h, fill=AMBER)
+    hr = rect(slide, x, y, w, header_h, fill=AMBER_LINE)
     for i, htxt in enumerate(headers):
         textbox(slide, xs[i] + 0.12, y + 0.055, widths[i] - 0.24, header_h - 0.11,
                 [dict(text=htxt, size=size, bold=True, color=DARK)])
@@ -204,7 +211,7 @@ def panel_table(slide, x, y, w, headers, rows, col_w, row_h=0.36, header_h=0.36,
 # --------------------------- slides ------------------------------
 # S1 - Portada
 s = new_slide()
-rect(s, 0, 0, 13.333, 0.14, fill=AMBER)
+rect(s, 0, 0, 13.333, 0.14, fill=AMBER_LINE)
 textbox(s, 0.8, 1.5, 11.7, 0.4, [dict(text="PRUEBA TÉCNICA · SERIES TEMPORALES SOBRE POSTGRESQL", size=15, bold=True, color=AMBER)])
 textbox(s, 0.8, 1.95, 11.7, 1.2, [dict(text="TimescaleDB", size=72, bold=True, color=TEXT)])
 rule(s, 0.85, 3.25, 2.2, h=0.055)
