@@ -314,11 +314,12 @@ s = new_slide()
 header(s, 7, "", "`03_compresion.sql`", "Compresión nativa: la tabla fila se convierte en columnas")
 bullets(s, [
     dict(text="Cada chunk comprimido pasa a ser un **columnstore** (`..._chunk_compressed`) y es **lossless** (pérdida cero): `count(*)` se mantiene.", size=15, space_after=4),
-    dict(text="Algoritmos automáticos por tipo:", size=15, space_after=2),
-    dict(text="`delta-of-delta + simple-8b + RLE` → enteros, timestamps, bool", size=13, level=1, space_after=2),
-    dict(text="`XOR (Gorilla)` → flotantes: velocidad, presiones, temperaturas", size=13, level=1, space_after=2),
-    dict(text="`diccionario` → baja cardinalidad: auto_id, rpm", size=13, level=1, space_after=8),
-    dict(text="Se configura con `segmentby` (por coche) y `orderby` (ts DESC).", size=15, space_after=4),
+    dict(text="Algoritmo por defecto: Timescale lo elige solo al comprimir, **según el tipo de cada columna** (catálogo 2.30):", size=15, space_after=2),
+    dict(text="`DELTADELTA` + simple-8b + RLE → enteros y timestamps (el `ts` pasa de 64 bits a ~1)", size=13, level=1, space_after=2),
+    dict(text="`GORILLA` (XOR) → flotantes: velocidad, presiones, temperaturas", size=13, level=1, space_after=2),
+    dict(text="`DICTIONARY` → baja cardinalidad: `auto_id`", size=13, level=1, space_after=2),
+    dict(text="`BOOL` / `UUID` → bools e ids; `ARRAY` solo para filtros/índices", size=13, level=1, space_after=8),
+    dict(text="Tú no pides el algoritmo (solo `segmentby`/`orderby`): `timescaledb_information.compression_settings` muestra lo aplicado.", size=15, space_after=4),
     dict(text="Contrapartida: escribir sobre columna comprimida es más caro → por eso solo se comprime lo **viejo**.", size=15, space_after=0),
 ], y=2.15, w=8.0)
 rect(s, 8.8, 2.15, 3.9, 2.7, fill=BG_PANEL, round_=True)
